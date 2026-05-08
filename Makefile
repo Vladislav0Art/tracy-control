@@ -1,7 +1,7 @@
 IMAGE ?= local-tracy-evaluation-control
 NAME  ?= tracy-eval
 
-.PHONY: help bootstrap build run watch
+.PHONY: help bootstrap build run watch stop
 
 help:
 	@echo "Targets:"
@@ -9,6 +9,7 @@ help:
 	@echo "  make build             build the docker image ($(IMAGE))"
 	@echo "  make run [NAME=<n>]    start container (default name: $(NAME))"
 	@echo "  make watch [NAME=<n>]  follow container stdout (docker logs -f)"
+	@echo "  make stop [NAME=<n>]   stop & remove container (default name: $(NAME))"
 
 bootstrap:
 	@echo "==> [bootstrap] running ./bootstrap.sh"
@@ -35,3 +36,8 @@ run:
 watch:
 	@echo "==> [watch] following stdout of container '$(NAME)' (Ctrl-C to stop)"
 	docker logs -f $(NAME)
+
+stop:
+	@echo "==> [stop] stopping & removing container '$(NAME)'"
+	-docker rm -f $(NAME)
+	@echo "==> [stop] done"

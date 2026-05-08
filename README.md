@@ -24,6 +24,8 @@ make run                # start container 'tracy-eval'
 make run NAME=tracy-2   # start container with a custom name
 make watch              # follow stdout of 'tracy-eval'
 make watch NAME=tracy-2 # follow stdout of a custom-named container
+make stop               # stop & remove 'tracy-eval'
+make stop NAME=tracy-2  # stop & remove a custom-named container
 make help               # list targets
 ```
 
