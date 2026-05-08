@@ -14,6 +14,13 @@ alive so you can `docker exec` in and push the resulting commits.
   ANTHROPIC_BASE_URL=...
   ANTHROPIC_AUTH_TOKEN=...
   TOKEN_LABEL=...           # optional: short label of which key this is (printed at startup so you can tell which run uses which credential)
+
+  # Optional Claude CLI overrides (defaults shown):
+  # CLAUDE_MODEL=claude-sonnet-4-6
+  # CLAUDE_EFFORT=xhigh
+  # CLAUDE_MAX_TURNS=500
+  # CLAUDE_MAX_BUDGET_USD=300
+  # CLAUDE_OUTPUT_FORMAT=stream-json
   ```
 
 ## Quick start (Makefile)
@@ -64,14 +71,14 @@ docker build -t local-tracy-evaluation-control .
 
 ### 3. Run
 
-`TASK.md` and `claude_settings.json` are bind-mounted (not baked in), so you can
-edit them between runs without rebuilding. Secrets come from `.env` via `--env-file`.
+`TASK.md` is bind-mounted (not baked in), so you can edit it between runs
+without rebuilding. Secrets and `CLAUDE_*` overrides come from `.env` via
+`--env-file`.
 
 ```sh
 docker run -d --name tracy-eval \
   --env-file .env \
-  -v "$PWD/TASK.md:/root/control/TASK.md:ro" \
-  -v "$PWD/claude_settings.json:/root/.claude/settings.json:ro" \
+  -v "$PWD/TASK.md:/home/coder/control/TASK.md:ro" \
   local-tracy-evaluation-control
 ```
 
@@ -80,21 +87,24 @@ docker run -d --name tracy-eval \
 ```sh
 docker logs -f tracy-eval
 # or, equivalently:
-docker exec tracy-eval tail -f /root/control/claude.log
+docker exec tracy-eval tail -f /home/coder/control/claude.log
 ```
 
-Claude's full transcript is also persisted to `/root/control/claude.log` inside
-the container.
+Claude's transcript is persisted to `/home/coder/control/claude.log` inside the
+container. With the default `CLAUDE_OUTPUT_FORMAT=stream-json`, this is
+newline-delimited JSON (one event per line — assistant messages, tool calls,
+results). Set `CLAUDE_OUTPUT_FORMAT=text` in `.env` for the old human-readable
+format.
 
 ## Push commits Claude made
 
-The container stays alive (`sleep infinity`) after Claude finishes so you can
-inspect state and push.
+The container stays alive after Claude finishes (the entrypoint ends with
+`tail -F` on the log) so you can inspect state and push.
 
 ```sh
 docker exec -it tracy-eval bash
 # inside the container:
-cd /root/control/tracy
+cd /home/coder/control/tracy
 git log --oneline -20
 git remote -v          # add a remote if needed
 git push origin <branch>
@@ -112,13 +122,12 @@ docker rm -f tracy-eval
 
 ```
 .
-├── Makefile                # bootstrap / build / run targets
+├── Makefile                # bootstrap / build / run / watch / stop targets
 ├── Dockerfile              # base + toolchain + Claude Code; entrypoint runs Claude
-├── entrypoint.sh           # runs `claude -p` on TASK.md, tees to claude.log, then sleeps
+├── entrypoint.sh           # runs `claude -p` on TASK.md, tees to claude.log, then tail -F
 ├── bootstrap.sh            # clones tracy + evaluator into ./artifacts/
 ├── TASK.md                 # the prompt Claude executes (mounted at runtime)
-├── claude_settings.json    # mounted as ~/.claude/settings.json (mounted at runtime)
-├── .env                    # secrets, passed via --env-file (gitignored)
+├── .env                    # secrets + CLAUDE_* overrides, via --env-file (gitignored)
 └── artifacts/              # bootstrap output (gitignored)
     ├── tracy/
     └── evaluator/
@@ -126,8 +135,12 @@ docker rm -f tracy-eval
 
 ## Notes
 
-- `claude_settings.json` keys `maxTurns` and `max_budget_usd` are **not** standard
-  Claude Code settings keys and will be ignored. To cap turns, pass `--max-turns N`
-  to the `claude` invocation in `entrypoint.sh`.
+- Claude is invoked with `-p ... --model ... --effort ... --max-turns ...
+  --max-budget-usd ... --dangerously-skip-permissions --output-format ...
+  --verbose`. Defaults live in `entrypoint.sh`; override any of them via the
+  `CLAUDE_*` env vars in `.env`.
+- The container runs as a non-root `coder` user (required by
+  `--dangerously-skip-permissions`); commits are authored as
+  `Claude Agent <claude-agent@anthropic.local>` (system git identity).
 - The image installs JDK 21, Python 3.12, Node 22, and the Claude Code CLI.
 - The image does **not** bake in `.env`; secrets are only present at run time.

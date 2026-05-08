@@ -1,8 +1,8 @@
 FROM eclipse-temurin:21-jdk-noble
 
 # Image: local-tracy-evaluation-control
-# Bakes in tracy/ and evaluator/; expects TASK.md and claude_settings.json
-# to be bind-mounted at run time, and secrets supplied via --env-file.
+# Bakes in tracy/ and evaluator/; expects TASK.md to be bind-mounted at run
+# time, and secrets + claude CLI overrides supplied via --env-file.
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -19,22 +19,26 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
 
 RUN npm install -g @anthropic-ai/claude-code
 
-# Git identity so any commits Claude makes inside the container are attributable.
-RUN git config --global user.email "claude-agent@anthropic.local" && \
-    git config --global user.name "Claude Agent" && \
-    git config --global init.defaultBranch main && \
-    git config --global --add safe.directory '*'
+# System-wide git identity so any commits Claude makes are attributable, and
+# coder inherits it without per-user setup.
+RUN git config --system user.email "claude-agent@anthropic.local" && \
+    git config --system user.name "Claude Agent" && \
+    git config --system init.defaultBranch main && \
+    git config --system --add safe.directory '*'
 
-WORKDIR /root/control
+# Non-root user (required by --dangerously-skip-permissions).
+RUN useradd -m -s /bin/bash coder && \
+    mkdir -p /home/coder/control && \
+    chown -R coder:coder /home/coder
 
-COPY artifacts/tracy/ /root/control/tracy/
-COPY artifacts/evaluator/ /root/control/evaluator/
+WORKDIR /home/coder/control
 
-# Mount target for claude_settings.json (bind-mounted at run time).
-RUN mkdir -p /root/.claude
-ENV CLAUDE_CONFIG_DIR=/root/.claude
+COPY --chown=coder:coder artifacts/tracy/ /home/coder/control/tracy/
+COPY --chown=coder:coder artifacts/evaluator/ /home/coder/control/evaluator/
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+USER coder
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

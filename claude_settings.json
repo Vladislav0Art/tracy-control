@@ -1,7 +1,0 @@
-{
-  "model": "sonnet",
-  "defaultMode": "bypassPermissions",
-  "effort": "xhigh",
-  "maxTurns": 350,
-  "max_budget_usd": 500
-}

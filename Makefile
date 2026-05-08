@@ -25,12 +25,11 @@ run:
 	@echo "==> [run] starting container '$(NAME)' from image '$(IMAGE)'"
 	docker run -d --name $(NAME) \
 		--env-file .env \
-		-v "$(CURDIR)/TASK.md:/root/control/TASK.md:ro" \
-		-v "$(CURDIR)/claude_settings.json:/root/.claude/settings.json:ro" \
+		-v "$(CURDIR)/TASK.md:/home/coder/control/TASK.md:ro" \
 		$(IMAGE)
 	@echo "==> [run] container started: $(NAME)"
 	@echo "    tail stdout:  make watch NAME=$(NAME)"
-	@echo "    tail logfile: docker exec $(NAME) tail -f /root/control/claude.log"
+	@echo "    tail logfile: docker exec $(NAME) tail -f /home/coder/control/claude.log"
 	@echo "    shell into:   docker exec -it $(NAME) bash"
 
 watch:
