@@ -5,6 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ARTIFACTS_DIR="${ROOT_DIR}/artifacts"
 mkdir -p "${ARTIFACTS_DIR}"
 
+echo "Note: cloning via SSH (git@github.com:...). Make sure your SSH key is loaded and has access to the repos."
+
 clone_if_missing() {
   local url="$1" dest="$2"
   if [ -d "${dest}/.git" ]; then
@@ -15,8 +17,8 @@ clone_if_missing() {
   fi
 }
 
-clone_if_missing "https://github.com/JetBrains/codespheres-evaluator-api-coverage" "${ARTIFACTS_DIR}/evaluator"
-clone_if_missing "https://github.com/slawa4s/codespheres-tracy" "${ARTIFACTS_DIR}/tracy"
+clone_if_missing "git@github.com:JetBrains/codespheres-evaluator-api-coverage.git" "${ARTIFACTS_DIR}/evaluator"
+clone_if_missing "git@github.com:slawa4s/codespheres-tracy.git" "${ARTIFACTS_DIR}/tracy"
 
 cat <<'EOF'
 
