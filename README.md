@@ -15,6 +15,10 @@ alive so you can `docker exec` in and push the resulting commits.
   ANTHROPIC_AUTH_TOKEN=...
   TOKEN_LABEL=...           # optional: short label of which key this is (printed at startup so you can tell which run uses which credential)
 
+  # Optional: enables auto-push of Claude's branch on container exit (see "Auto-push to GitHub" below).
+  # Needs Contents:write on the tracy repo.
+  # REPO_PAT=ghp_...
+
   # Optional Claude CLI overrides (defaults shown):
   # CLAUDE_MODEL=claude-sonnet-4-6
   # CLAUDE_EFFORT=xhigh
@@ -116,19 +120,37 @@ newline-delimited JSON (one event per line — assistant messages, tool calls,
 results). Set `CLAUDE_OUTPUT_FORMAT=text` in `.env` for the old human-readable
 format.
 
-## Push commits Claude made
+## Auto-push to GitHub
 
-The container exits when Claude finishes but is not deleted. To get a shell
-into the FS state Claude left behind, run `make exec` (which `docker start`s
-the container — the entrypoint detects the `.claude_done` marker and goes
-into keep-alive mode without re-running Claude — then `docker exec`s `bash`):
+If `REPO_PAT` is set in `.env`, the entrypoint will, **after Claude exits**:
+
+1. Verify HEAD is on a non-`main` branch in `tracy/`.
+2. Safety-net-commit any uncommitted/untracked work as `auto-save: post-claude container exit`.
+3. Create `local-claude-control/<claude-branch>` from Claude's branch.
+4. Push that branch to `origin` over HTTPS using the PAT (`--force-with-lease`).
+5. Print the GitHub URL: `https://github.com/<owner>/<repo>/tree/local-claude-control/<claude-branch>`.
+
+Required PAT scope:
+
+- **Classic PAT** — `repo` (or `public_repo` for a public repo).
+- **Fine-grained PAT** — `Contents: Read and write` on the tracy repo.
+
+If `REPO_PAT` is unset, the push step is skipped with a warning, and you can
+push manually via `make exec` (see below).
+
+## Push commits Claude made manually
+
+If you'd rather push by hand (or `REPO_PAT` was unset / push failed), get a
+shell into the container's FS state with `make exec`. The entrypoint detects
+the `.claude_done` marker on `docker start` and skips the rerun, going into
+keep-alive mode so `docker exec` works:
 
 ```sh
 make exec
 # inside the container:
 cd /home/coder/control/tracy
 git log --oneline -20
-git remote -v          # add a remote if needed
+git remote -v          # the remote was set by bootstrap.sh's clone
 git push origin <branch>
 ```
 

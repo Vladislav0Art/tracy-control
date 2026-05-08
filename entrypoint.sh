@@ -44,5 +44,61 @@ status=${PIPESTATUS[0]}
 echo "[entrypoint] Claude finished with exit ${status}." \
   | tee -a /home/coder/control/claude.log
 
+push_to_remote() {
+  if [ -z "${REPO_PAT:-}" ]; then
+    echo "[entrypoint][push] REPO_PAT not set - skipping remote push. Use 'make exec' and push manually."
+    return 0
+  fi
+
+  cd /home/coder/control/tracy || { echo "[entrypoint][push] tracy/ not found - skipping."; return 1; }
+
+  local claude_branch
+  claude_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  if [ -z "${claude_branch}" ] || [ "${claude_branch}" = "HEAD" ]; then
+    echo "[entrypoint][push] HEAD is detached - skipping push. Claude must end on its working branch."
+    return 0
+  fi
+  if [ "${claude_branch}" = "main" ] || [ "${claude_branch}" = "master" ]; then
+    echo "[entrypoint][push] Current branch is '${claude_branch}' - claude did not create a working branch; skipping push."
+    return 0
+  fi
+
+  if ! git diff --quiet \
+     || ! git diff --cached --quiet \
+     || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    echo "[entrypoint][push] Uncommitted changes found on '${claude_branch}' - committing as auto-save."
+    git add -A
+    git commit -m "auto-save: post-claude container exit" || true
+  fi
+
+  local publish_branch="local-claude-control/${claude_branch}"
+  echo "[entrypoint][push] Creating publish branch '${publish_branch}' from '${claude_branch}'"
+  git branch -f "${publish_branch}" "${claude_branch}"
+
+  local origin_url owner_repo=""
+  origin_url=$(git remote get-url origin 2>/dev/null || echo "")
+  if [[ "${origin_url}" =~ ^git@github\.com:(.+)$ ]]; then
+    owner_repo="${BASH_REMATCH[1]%.git}"
+  elif [[ "${origin_url}" =~ ^https://github\.com/(.+)$ ]]; then
+    owner_repo="${BASH_REMATCH[1]%.git}"
+  fi
+  if [ -z "${owner_repo}" ]; then
+    echo "[entrypoint][push] Cannot parse owner/repo from origin '${origin_url}' - skipping push."
+    return 1
+  fi
+
+  echo "[entrypoint][push] Pushing ${publish_branch} -> github.com/${owner_repo}"
+  if git push --force-with-lease \
+       "https://x-access-token:${REPO_PAT}@github.com/${owner_repo}.git" \
+       "${publish_branch}:${publish_branch}"; then
+    echo "[entrypoint][push] Pushed: https://github.com/${owner_repo}/tree/${publish_branch}"
+  else
+    echo "[entrypoint][push] Push FAILED. Check that REPO_PAT has Contents:write on ${owner_repo}."
+    return 1
+  fi
+}
+
+push_to_remote 2>&1 | tee -a /home/coder/control/claude.log || true
+
 touch "${DONE_MARKER}"
 exit "${status}"

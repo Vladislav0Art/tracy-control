@@ -114,8 +114,25 @@ Spot-checks before committing:
 - `tracy/CHANGELOG.md` has a new bullet under `## Unreleased` for each logical change.
 - `git diff` shows no dead branches you intended to remove, and no `gen_ai.*` names that aren't in the registry (outside the indexed sub-namespaces).
 
+## Before finishing
+
+The container will try to publish your branch to GitHub when you exit. For
+that to work, leave `tracy/` in this state:
+
+1. **All your work is on a single branch you created off `main`.** No
+   splitting across branches. (Restating the rule from "Setup steps" because
+   the post-finish step depends on it.) The branch name you pick **is** the
+   branch the container publishes under `local-claude-control/<your-branch-name>`
+   on the GitHub remote.
+2. **All changes are committed** — no uncommitted edits, no untracked files
+   you wanted to keep. The entrypoint will safety-net-commit anything you
+   leave behind, but a clean exit is preferred.
+3. **`HEAD` is on your working branch** when you finish — not on `main`, not
+   detached. Run `git status` as your last step in `tracy/` to confirm.
+
 ## Constraints
 
-- Use `git` to branch, commit, and view history. Do **not** push.
+- Use `git` to branch, commit, and view history. Do **not** push yourself —
+  the container handles publishing after you exit.
 - One working branch off `main`; commit granularity is your call.
 - Quality bar: every change builds green (`assemble`), tests green (the ones you wrote), and ships with KDoc + a `CHANGELOG.md` bullet.
