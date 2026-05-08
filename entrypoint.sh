@@ -11,4 +11,6 @@ status=${PIPESTATUS[0]}
 echo "[entrypoint] Claude finished with exit ${status} - container staying alive for inspection." \
   | tee -a /root/control/claude.log
 
+echo '[entrypoint] See logs at `/root/control/claude.log`'
+
 exec sleep infinity
