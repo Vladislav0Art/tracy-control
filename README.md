@@ -126,9 +126,9 @@ If `REPO_PAT` is set in `.env`, the entrypoint will, **after Claude exits**:
 
 1. Verify HEAD is on a non-`main` branch in `tracy/`.
 2. Safety-net-commit any uncommitted/untracked work as `auto-save: post-claude container exit`.
-3. Create `local-claude-control/<claude-branch>` from Claude's branch.
-4. Push that branch to `origin` over HTTPS using the PAT (`--force-with-lease`).
-5. Print the GitHub URL: `https://github.com/<owner>/<repo>/tree/local-claude-control/<claude-branch>`.
+3. Generate a fresh UUID and create `local-claude-control/<claude-branch>/<uuid>` from Claude's branch (UUID per run, so reruns / parallel containers never collide on the remote).
+4. Push that branch to `origin` over HTTPS using the PAT.
+5. Print the GitHub URL: `https://github.com/<owner>/<repo>/tree/local-claude-control/<claude-branch>/<uuid>`.
 
 Required PAT scope:
 

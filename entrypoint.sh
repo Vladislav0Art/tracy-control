@@ -71,8 +71,10 @@ push_to_remote() {
     git commit -m "auto-save: post-claude container exit" || true
   fi
 
-  local publish_branch="local-claude-control/${claude_branch}"
-  echo "[entrypoint][push] Creating publish branch '${publish_branch}' from '${claude_branch}'"
+  local run_uuid
+  run_uuid=$(cat /proc/sys/kernel/random/uuid)
+  local publish_branch="local-claude-control/${claude_branch}/${run_uuid}"
+  echo "[entrypoint][push] Creating publish branch '${publish_branch}' from '${claude_branch}' (uuid: ${run_uuid})"
   git branch -f "${publish_branch}" "${claude_branch}"
 
   local origin_url owner_repo=""
@@ -88,7 +90,7 @@ push_to_remote() {
   fi
 
   echo "[entrypoint][push] Pushing ${publish_branch} -> github.com/${owner_repo}"
-  if git push --force-with-lease \
+  if git push \
        "https://x-access-token:${REPO_PAT}@github.com/${owner_repo}.git" \
        "${publish_branch}:${publish_branch}"; then
     echo "[entrypoint][push] Pushed: https://github.com/${owner_repo}/tree/${publish_branch}"

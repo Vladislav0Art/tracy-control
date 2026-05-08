@@ -121,9 +121,10 @@ that to work, leave `tracy/` in this state:
 
 1. **All your work is on a single branch you created off `main`.** No
    splitting across branches. (Restating the rule from "Setup steps" because
-   the post-finish step depends on it.) The branch name you pick **is** the
-   branch the container publishes under `local-claude-control/<your-branch-name>`
-   on the GitHub remote.
+   the post-finish step depends on it.) Your branch name is embedded in the
+   published branch `local-claude-control/<your-branch-name>/<random-uuid>`
+   on the GitHub remote. The UUID is generated per run so reruns / parallel
+   containers never collide.
 2. **All changes are committed** — no uncommitted edits, no untracked files
    you wanted to keep. The entrypoint will safety-net-commit anything you
    leave behind, but a clean exit is preferred.
