@@ -32,10 +32,28 @@ make run                     # start container 'tracy-eval-1'
 make run NAME=tracy-eval-2   # run a second container in parallel
 make watch                   # follow stdout of 'tracy-eval-1'
 make watch NAME=tracy-eval-2 # follow stdout of a different container
+make exec                    # start (if exited) and bash into 'tracy-eval-1'
+make exec NAME=tracy-eval-2  # bash into a different container
 make stop                    # stop & remove 'tracy-eval-1'
 make stop NAME=tracy-eval-2  # stop & remove a different container
 make help                    # list targets
 ```
+
+### Container lifecycle
+
+- `make run` — Claude runs against `TASK.md`, then the container **exits**
+  (so `docker ps` makes it obvious when the agent has finished). Exit code
+  matches Claude's. The container is **not** auto-removed; its filesystem
+  stays intact.
+- `make watch` — works on both running and exited containers (`docker logs`
+  is persisted by the daemon until removal).
+- `make exec` — `docker start` + `docker exec bash`. Starting an exited
+  container normally re-runs the entrypoint, but a `.claude_done` marker is
+  written when Claude finishes; the entrypoint sees it and skips the rerun,
+  going straight to keep-alive. Use this to inspect the diff and push commits.
+- `make stop` — `docker rm -f` to tear down for good.
+- To force a re-run in the same container (rare): `docker exec <name> rm
+  /home/coder/control/.claude_done && docker restart <name>`.
 
 The default container name is `tracy-eval-1`. Override with `NAME=...` to run
 multiple containers in parallel (`tracy-eval-2`, `tracy-eval-3`, …). The
@@ -100,11 +118,13 @@ format.
 
 ## Push commits Claude made
 
-The container stays alive after Claude finishes (the entrypoint ends with
-`tail -F` on the log) so you can inspect state and push.
+The container exits when Claude finishes but is not deleted. To get a shell
+into the FS state Claude left behind, run `make exec` (which `docker start`s
+the container — the entrypoint detects the `.claude_done` marker and goes
+into keep-alive mode without re-running Claude — then `docker exec`s `bash`):
 
 ```sh
-docker exec -it tracy-eval-1 bash
+make exec
 # inside the container:
 cd /home/coder/control/tracy
 git log --oneline -20
@@ -126,7 +146,7 @@ docker rm -f tracy-eval-1
 .
 ├── Makefile                # bootstrap / build / run / watch / stop targets
 ├── Dockerfile              # base + toolchain + Claude Code; entrypoint runs Claude
-├── entrypoint.sh           # runs `claude -p` on TASK.md, tees to claude.log, then tail -F
+├── entrypoint.sh           # runs `claude -p` on TASK.md, tees to claude.log, exits on finish
 ├── bootstrap.sh            # clones tracy + evaluator into ./artifacts/
 ├── TASK.md                 # the prompt Claude executes (mounted at runtime)
 ├── .env                    # secrets + CLAUDE_* overrides, via --env-file (gitignored)

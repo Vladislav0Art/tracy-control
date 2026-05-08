@@ -2,6 +2,16 @@
 set -u
 cd /home/coder/control
 
+DONE_MARKER=/home/coder/control/.claude_done
+
+# Re-entry mode: container was started again after Claude already finished.
+# Skip the run, keep the container alive so `docker exec` works.
+if [ -f "${DONE_MARKER}" ]; then
+  echo "[entrypoint] ${DONE_MARKER} present - Claude already ran in this container; keeping it alive for inspection."
+  echo "[entrypoint] Remove ${DONE_MARKER} and restart the container to re-run Claude."
+  exec tail -n +1 -F /home/coder/control/claude.log
+fi
+
 echo "[entrypoint] ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-<unset>}"
 : "${ANTHROPIC_AUTH_TOKEN:?ANTHROPIC_AUTH_TOKEN is required (pass via --env-file .env)}"
 echo "[entrypoint] TOKEN_LABEL=${TOKEN_LABEL:-<unset>}"
@@ -31,9 +41,8 @@ claude -p "Read /home/coder/control/TASK.md and execute the task defined in it. 
   --verbose \
   2>&1 | tee /home/coder/control/claude.log
 status=${PIPESTATUS[0]}
-echo "[entrypoint] Claude finished with exit ${status} - container staying alive for inspection." \
+echo "[entrypoint] Claude finished with exit ${status}." \
   | tee -a /home/coder/control/claude.log
 
-echo '[entrypoint] Streaming /home/coder/control/claude.log - attach to this container to view it.'
-
-exec tail -n +1 -F /home/coder/control/claude.log
+touch "${DONE_MARKER}"
+exit "${status}"
