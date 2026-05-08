@@ -2,6 +2,10 @@
 set -u
 cd /root/control
 
+echo "[entrypoint] ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-<unset>}"
+: "${ANTHROPIC_AUTH_TOKEN:?ANTHROPIC_AUTH_TOKEN is required (pass via --env-file .env)}"
+echo "[entrypoint] ANTHROPIC_AUTH_TOKEN is set (${#ANTHROPIC_AUTH_TOKEN} chars)"
+
 git config --global --add safe.directory '*'
 
 claude -p "Read /root/control/TASK.md and execute the task defined in it. \
