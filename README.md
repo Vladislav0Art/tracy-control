@@ -13,6 +13,7 @@ alive so you can `docker exec` in and push the resulting commits.
   ```
   ANTHROPIC_BASE_URL=...
   ANTHROPIC_AUTH_TOKEN=...
+  TOKEN_LABEL=...           # optional: short label of which key this is (printed at startup so you can tell which run uses which credential)
   ```
 
 ## Quick start (Makefile)

@@ -4,6 +4,7 @@ cd /root/control
 
 echo "[entrypoint] ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-<unset>}"
 : "${ANTHROPIC_AUTH_TOKEN:?ANTHROPIC_AUTH_TOKEN is required (pass via --env-file .env)}"
+echo "[entrypoint] TOKEN_LABEL=${TOKEN_LABEL:-<unset>}"
 echo "[entrypoint] ANTHROPIC_AUTH_TOKEN is set (${#ANTHROPIC_AUTH_TOKEN} chars)"
 
 git config --global --add safe.directory '*'
