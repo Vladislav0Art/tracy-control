@@ -1,5 +1,5 @@
 IMAGE ?= local-tracy-evaluation-control
-NAME  ?= tracy-eval
+NAME  ?= tracy-eval-1
 
 .PHONY: help bootstrap build run watch stop
 

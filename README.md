@@ -28,17 +28,19 @@ alive so you can `docker exec` in and push the resulting commits.
 ```sh
 make bootstrap          # clone tracy + evaluator into ./artifacts/
 make build              # docker build -t local-tracy-evaluation-control .
-make run                # start container 'tracy-eval'
-make run NAME=tracy-2   # start container with a custom name
-make watch              # follow stdout of 'tracy-eval'
-make watch NAME=tracy-2 # follow stdout of a custom-named container
-make stop               # stop & remove 'tracy-eval'
-make stop NAME=tracy-2  # stop & remove a custom-named container
-make help               # list targets
+make run                     # start container 'tracy-eval-1'
+make run NAME=tracy-eval-2   # run a second container in parallel
+make watch                   # follow stdout of 'tracy-eval-1'
+make watch NAME=tracy-eval-2 # follow stdout of a different container
+make stop                    # stop & remove 'tracy-eval-1'
+make stop NAME=tracy-eval-2  # stop & remove a different container
+make help                    # list targets
 ```
 
-The default container name is `tracy-eval`. The default image name is
-`local-tracy-evaluation-control` (override with `IMAGE=...`).
+The default container name is `tracy-eval-1`. Override with `NAME=...` to run
+multiple containers in parallel (`tracy-eval-2`, `tracy-eval-3`, …). The
+default image name is `local-tracy-evaluation-control` (override with
+`IMAGE=...`).
 
 ---
 
@@ -76,7 +78,7 @@ without rebuilding. Secrets and `CLAUDE_*` overrides come from `.env` via
 `--env-file`.
 
 ```sh
-docker run -d --name tracy-eval \
+docker run -d --name tracy-eval-1 \
   --env-file .env \
   -v "$PWD/TASK.md:/home/coder/control/TASK.md:ro" \
   local-tracy-evaluation-control
@@ -85,9 +87,9 @@ docker run -d --name tracy-eval \
 ## Watch progress
 
 ```sh
-docker logs -f tracy-eval
+docker logs -f tracy-eval-1
 # or, equivalently:
-docker exec tracy-eval tail -f /home/coder/control/claude.log
+docker exec tracy-eval-1 tail -f /home/coder/control/claude.log
 ```
 
 Claude's transcript is persisted to `/home/coder/control/claude.log` inside the
@@ -102,7 +104,7 @@ The container stays alive after Claude finishes (the entrypoint ends with
 `tail -F` on the log) so you can inspect state and push.
 
 ```sh
-docker exec -it tracy-eval bash
+docker exec -it tracy-eval-1 bash
 # inside the container:
 cd /home/coder/control/tracy
 git log --oneline -20
@@ -115,7 +117,7 @@ Commits are authored as `Claude Agent <claude-agent@anthropic.local>`.
 ## Cleanup
 
 ```sh
-docker rm -f tracy-eval
+docker rm -f tracy-eval-1
 ```
 
 ## Layout
