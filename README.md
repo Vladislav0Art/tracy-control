@@ -15,10 +15,28 @@ alive so you can `docker exec` in and push the resulting commits.
   ANTHROPIC_AUTH_TOKEN=...
   ```
 
-## 1. Bootstrap source projects
+## Quick start (Makefile)
 
-`bootstrap.sh` clones `tracy` and `evaluator` into `./artifacts/`. It is idempotent —
-already-cloned projects are skipped.
+```sh
+make bootstrap          # clone tracy + evaluator into ./artifacts/
+make build              # docker build -t local-tracy-evaluation-control .
+make run                # start container 'tracy-eval'
+make run NAME=tracy-2   # start container with a custom name
+make help               # list targets
+```
+
+The default container name is `tracy-eval`. The default image name is
+`local-tracy-evaluation-control` (override with `IMAGE=...`).
+
+---
+
+## Manual usage
+
+### 1. Bootstrap source projects
+
+`bootstrap.sh` clones `tracy` and `evaluator` into `./artifacts/` via SSH. It is
+idempotent — already-cloned projects are skipped. Make sure your SSH key has
+access to the repos.
 
 ```sh
 ./bootstrap.sh
@@ -33,13 +51,13 @@ artifacts/
 
 The Dockerfile `COPY`s from `artifacts/`, so the build context picks them up.
 
-## 2. Build the image
+### 2. Build the image
 
 ```sh
 docker build -t local-tracy-evaluation-control .
 ```
 
-## 3. Run
+### 3. Run
 
 `TASK.md` and `claude_settings.json` are bind-mounted (not baked in), so you can
 edit them between runs without rebuilding. Secrets come from `.env` via `--env-file`.
@@ -52,7 +70,7 @@ docker run -d --name tracy-eval \
   local-tracy-evaluation-control
 ```
 
-## 4. Watch progress
+## Watch progress
 
 ```sh
 docker logs -f tracy-eval
@@ -63,7 +81,7 @@ docker exec tracy-eval tail -f /root/control/claude.log
 Claude's full transcript is also persisted to `/root/control/claude.log` inside
 the container.
 
-## 5. Push commits Claude made
+## Push commits Claude made
 
 The container stays alive (`sleep infinity`) after Claude finishes so you can
 inspect state and push.
@@ -89,6 +107,7 @@ docker rm -f tracy-eval
 
 ```
 .
+├── Makefile                # bootstrap / build / run targets
 ├── Dockerfile              # base + toolchain + Claude Code; entrypoint runs Claude
 ├── entrypoint.sh           # runs `claude -p` on TASK.md, tees to claude.log, then sleeps
 ├── bootstrap.sh            # clones tracy + evaluator into ./artifacts/
