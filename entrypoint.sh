@@ -29,6 +29,12 @@ echo "[entrypoint] CLAUDE_MAX_TURNS=${CLAUDE_MAX_TURNS}"
 echo "[entrypoint] CLAUDE_MAX_BUDGET_USD=${CLAUDE_MAX_BUDGET_USD}"
 echo "[entrypoint] CLAUDE_OUTPUT_FORMAT=${CLAUDE_OUTPUT_FORMAT}"
 
+if [ -n "${REPO_PAT:-}" ]; then
+  echo "[entrypoint] REPO_PAT is set (${#REPO_PAT} chars) - tracy branch WILL be auto-pushed to GitHub on exit."
+else
+  echo "[entrypoint] REPO_PAT is NOT set - auto-push DISABLED; push manually via 'make exec' after Claude exits."
+fi
+
 git config --global --add safe.directory '*'
 
 claude -p "Read /home/coder/control/TASK.md and execute the task defined in it. Work in /home/coder/control. Make as much progress as you can." \
