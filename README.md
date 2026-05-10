@@ -15,9 +15,14 @@ alive so you can `docker exec` in and push the resulting commits.
   ANTHROPIC_AUTH_TOKEN=...
   TOKEN_LABEL=...           # optional: short label of which key this is (printed at startup so you can tell which run uses which credential)
 
-  # Optional: enables auto-push of Claude's branch on container exit (see "Auto-push to GitHub" below).
+  # Optional: enables auto-push of each session's branch on session exit (see "Auto-push to GitHub" below).
   # Needs Contents:write on the tracy repo.
   # REPO_PAT=ghp_...
+
+  # Optional session-loop knobs (defaults shown):
+  # SESSIONS=1                          # number of sequential Claude sessions in this container
+  # REPO_BRANCH=main                    # starting branch for session 0
+  # RUN_ID=run_0                        # identifier embedded in published branch names
 
   # Optional Claude CLI overrides (defaults shown):
   # CLAUDE_MODEL=claude-sonnet-4-6
@@ -38,6 +43,7 @@ make watch                   # follow stdout of 'tracy-eval-1'
 make watch NAME=tracy-eval-2 # follow stdout of a different container
 make exec                    # start (if exited) and bash into 'tracy-eval-1'
 make exec NAME=tracy-eval-2  # bash into a different container
+make resume                  # re-invoke entrypoint with current .env (e.g. bumped SESSIONS)
 make stop                    # stop & remove 'tracy-eval-1'
 make stop NAME=tracy-eval-2  # stop & remove a different container
 make help                    # list targets
@@ -45,10 +51,33 @@ make help                    # list targets
 
 ### Container lifecycle
 
-- `make run` — Claude runs against `TASK.md`, then the container **exits**
-  (so `docker ps` makes it obvious when the agent has finished). Exit code
-  matches Claude's. The container is **not** auto-removed; its filesystem
-  stays intact.
+- `make run` — the entrypoint runs `SESSIONS` (default 1) sequential
+  **sessions**. Each session gets its own git branch (`claude-session-<N>`)
+  off the previous session's tip — session 0 branches off `REPO_BRANCH`
+  (default `main`), session 1 off session 0's tip, and so on. Inside each
+  session, Claude reads `tracy/CHANGELOG.md` for prior-session notes,
+  iterates publish→evaluate→fix→commit until it decides it's done, appends
+  a CHANGELOG entry, and exits. Then the entrypoint commits any leftovers,
+  writes `artifacts/<session_idx>/branch.txt` (the completion marker),
+  optionally pushes to GitHub, and starts the next session. After all
+  sessions, the container **exits with 0**.
+- `make watch` — works on both running and exited containers (`docker logs`
+  is persisted by the daemon until removal).
+- `make exec` — starts the container (if exited) and gives you a `bash`. The
+  entrypoint detects all sessions are already complete and goes into
+  `tail -F` keep-alive, so `docker exec` lands cleanly.
+- `make resume` — bumped `SESSIONS` in `.env` and want to do more rounds in
+  the same container? `make resume` re-invokes `entrypoint.py` inside the
+  existing container with the current `.env`. The entrypoint scans
+  `artifacts/<N>/branch.txt`, skips already-complete sessions, and runs the
+  rest. Resume picks up the prior session's branch from disk, so changes
+  remain incremental. (Why a separate target: `docker start` re-runs the
+  entrypoint with the env vars captured at `docker run` time, which won't
+  reflect a bumped `SESSIONS`. `docker exec --env-file .env` reads `.env`
+  fresh.)
+- `make stop` — `docker rm -f` to tear down for good. **Removes the
+  writable layer**, so all `artifacts/` and committed branches are lost.
+  Don't run this if you want to resume later.
 - `make watch` — works on both running and exited containers (`docker logs`
   is persisted by the daemon until removal).
 - `make exec` — `docker start` + `docker exec bash`. Starting an exited
@@ -122,21 +151,35 @@ format.
 
 ## Auto-push to GitHub
 
-If `REPO_PAT` is set in `.env`, the entrypoint will, **after Claude exits**:
+If `REPO_PAT` is set in `.env`, the entrypoint pushes **each session's**
+branch to GitHub right after that session ends (i.e. once per `ATTEMPTS`).
+For each session it:
 
-1. Verify HEAD is on a non-`main` branch in `tracy/`.
-2. Safety-net-commit any uncommitted/untracked work as `auto-save: post-claude container exit`.
-3. Generate a fresh UUID and create `local-claude-control/<claude-branch>/<uuid>` from Claude's branch (UUID per run, so reruns / parallel containers never collide on the remote).
-4. Push that branch to `origin` over HTTPS using the PAT.
-5. Print the GitHub URL: `https://github.com/<owner>/<repo>/tree/local-claude-control/<claude-branch>/<uuid>`.
+1. Verifies HEAD is on a non-`main` branch in `tracy/`.
+2. Safety-net-commits any uncommitted/untracked work as `auto-save: post-claude session <N>`.
+3. Generates a fresh UUID and creates a publish branch from Claude's branch.
+4. Pushes that publish branch to `origin` over HTTPS using the PAT.
+5. Prints the GitHub URL.
+
+Published branch pattern:
+
+```
+local-claude-control/<RUN_ID>/session_<session_idx>/<claude-branch>/<uuid>
+```
+
+- `<RUN_ID>` defaults to `run_0`; override per run.
+- `<session_idx>` is the zero-indexed session number.
+- `<claude-branch>` is the working branch name (`claude-session-<N>` unless
+  Claude renamed HEAD).
+- `<uuid>` is per-session, so re-runs and parallel containers never collide.
 
 Required PAT scope:
 
 - **Classic PAT** — `repo` (or `public_repo` for a public repo).
 - **Fine-grained PAT** — `Contents: Read and write` on the tracy repo.
 
-If `REPO_PAT` is unset, the push step is skipped with a warning, and you can
-push manually via `make exec` (see below).
+If `REPO_PAT` is unset, push is skipped with a warning and you can push
+manually via `make exec` (see below).
 
 ## Push commits Claude made manually
 
@@ -166,23 +209,44 @@ docker rm -f tracy-eval-1
 
 ```
 .
-├── Makefile                # bootstrap / build / run / watch / stop targets
+├── Makefile                # bootstrap / build / run / watch / exec / stop targets
 ├── Dockerfile              # base + toolchain + Claude Code; entrypoint runs Claude
-├── entrypoint.sh           # runs `claude -p` on TASK.md, tees to claude.log, exits on finish
+├── entrypoint.py           # session loop, claude invocation, auto-commit, auto-push
 ├── bootstrap.sh            # clones tracy + evaluator into ./artifacts/
 ├── TASK.md                 # the prompt Claude executes (mounted at runtime)
-├── .env                    # secrets + CLAUDE_* overrides, via --env-file (gitignored)
+├── .env                    # secrets + CLAUDE_* / session knobs, via --env-file (gitignored)
 └── artifacts/              # bootstrap output (gitignored)
     ├── tracy/
     └── evaluator/
 ```
 
+Inside the container, the entrypoint produces a sibling `artifacts/` tree
+(distinct from the host's bootstrap one) at `/home/coder/control/artifacts/`:
+
+```
+artifacts/
+├── 0/
+│   ├── branch.txt              # name of the branch session 0 ended on
+│   ├── evaluation_0.json       # raw evaluator output, baseline run
+│   ├── evaluation_1.json
+│   └── …
+├── 1/
+│   ├── branch.txt
+│   └── evaluation_*.json
+└── …
+```
+
+Plus `tracy/CHANGELOG.md` gains a fresh section per session (committed to
+the session's branch and pushed with it).
+
 ## Notes
 
 - Claude is invoked with `-p ... --model ... --effort ... --max-turns ...
   --max-budget-usd ... --dangerously-skip-permissions --output-format ...
-  --verbose`. Defaults live in `entrypoint.sh`; override any of them via the
+  --verbose`. Defaults live in `entrypoint.py`; override any of them via the
   `CLAUDE_*` env vars in `.env`.
+- Sessions: see `ATTEMPTS`, `REPO_BRANCH`, `RUN_ID` env vars under
+  Prerequisites. Default is one session off `main`.
 - The container runs as a non-root `coder` user (required by
   `--dangerously-skip-permissions`); commits are authored as
   `Claude Agent <claude-agent@anthropic.local>` (system git identity).

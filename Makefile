@@ -1,16 +1,18 @@
 IMAGE ?= local-tracy-evaluation-control
 NAME  ?= tracy-eval-1
 
-.PHONY: help bootstrap build run watch exec stop
+.PHONY: help bootstrap build run watch exec resume stop
 
 help:
 	@echo "Targets:"
-	@echo "  make bootstrap         clone tracy + evaluator into ./artifacts/"
-	@echo "  make build             build the docker image ($(IMAGE))"
-	@echo "  make run [NAME=<n>]    start container (default name: $(NAME))"
-	@echo "  make watch [NAME=<n>]  follow container stdout (docker logs -f)"
-	@echo "  make exec [NAME=<n>]   start (if exited) and bash into container"
-	@echo "  make stop [NAME=<n>]   stop & remove container (default name: $(NAME))"
+	@echo "  make bootstrap          clone tracy + evaluator into ./artifacts/"
+	@echo "  make build              build the docker image ($(IMAGE))"
+	@echo "  make run [NAME=<n>]     start container (default name: $(NAME))"
+	@echo "  make watch [NAME=<n>]   follow container stdout (docker logs -f)"
+	@echo "  make exec [NAME=<n>]    start (if exited) and bash into container"
+	@echo "  make resume [NAME=<n>]  re-invoke entrypoint inside existing container with current .env"
+	@echo "                          (e.g. bumped SESSIONS - resumes from first incomplete session)"
+	@echo "  make stop [NAME=<n>]    stop & remove container (default name: $(NAME))"
 
 bootstrap:
 	@echo "==> [bootstrap] running ./bootstrap.sh"
@@ -41,6 +43,11 @@ exec:
 	@echo "==> [exec] starting (if stopped) and bash'ing into '$(NAME)'"
 	docker start $(NAME) >/dev/null
 	docker exec -it $(NAME) bash
+
+resume:
+	@echo "==> [resume] starting (if stopped) and re-running entrypoint in '$(NAME)' with current .env"
+	docker start $(NAME) >/dev/null
+	docker exec --env-file .env -it $(NAME) /usr/local/bin/entrypoint.py
 
 stop:
 	@echo "==> [stop] stopping & removing container '$(NAME)'"

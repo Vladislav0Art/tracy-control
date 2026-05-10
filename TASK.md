@@ -9,12 +9,29 @@ You have two repositories in this workspace:
 
 Your goal: **modify Tracy so the evaluator's coverage score goes up as much as possible.**
 
+## Sessions and the prompt context
+
+You are running inside ONE **session** of a multi-session pipeline. The
+entrypoint:
+
+- Has already created and checked out your working git branch in `tracy/` for
+  this session — **stay on it**, do not create or switch to a different
+  branch.
+- Tells you (in the prompt that wraps this file) your `<session_idx>`, your
+  branch name, and the base branch you were branched from.
+- Will commit any leftover changes for you, save your branch name, and push
+  the branch to GitHub after you exit. You don't push.
+
+Earlier sessions left their own commits + a section in `tracy/CHANGELOG.md`.
+Your first move every session: **read `tracy/CHANGELOG.md`** so you know what
+was already tried. Build incrementally; don't redo work.
+
 ## The loop
 
 Repeat until the score plateaus or the changes already represent a HIGH-quality enhancement:
 
 1. Publish Tracy to local Maven (see "Publish Tracy locally" below).
-2. Run the evaluator against the local build; get the coverage report.
+2. Run the evaluator against the local build, get the coverage report, and **save the full evaluator output to `/home/coder/control/artifacts/<session_idx>/evaluation_<attempt_idx>.json`** where `<session_idx>` is given to you in the prompt and `<attempt_idx>` is the zero-indexed evaluator-run counter within this session (see "Save evaluator output" below).
 3. Analyze the report — find missing coverage, broken handlers, wrong attribute names.
 4. Make ONE focused change in Tracy (AUDIT-FIX or NEW-COVERAGE — see below).
 5. Verify (see "Verify before each commit").
@@ -36,6 +53,20 @@ Notes:
 
 Artifacts land in `~/.m2/repository/org/jetbrains/ai/tracy/`. If that directory doesn't appear after a successful publish, list `~/.m2/repository` to confirm where they went and point the evaluator at that path.
 
+### Save evaluator output
+
+On EVERY evaluator run, save its full JSON output (score + detailed per-scenario results) to:
+
+```
+/home/coder/control/artifacts/<session_idx>/evaluation_<attempt_idx>.json
+```
+
+- `<session_idx>` is the integer the entrypoint passes you in the prompt.
+- `<attempt_idx>` is zero-indexed within this session: `0` for the baseline run before any code change in this session, then `1`, `2`, … for each subsequent run.
+- Create the directory if missing: `mkdir -p /home/coder/control/artifacts/<session_idx>`.
+- The evaluator emits JSON natively; write/copy it verbatim into the target file. If its CLI mixes JSON with progress text, extract just the JSON.
+- These files pair with `tracy/CHANGELOG.md` — the changelog summarizes; these files preserve raw scores for later inspection.
+
 Stop when any of the following holds:
 - The score has reached its ceiling.
 - Several iterations in a row produce no significant change in score.
@@ -44,9 +75,18 @@ Stop when any of the following holds:
 ## Setup steps
 
 1. Read both repos enough to know: how Tracy publishes locally, how the evaluator consumes a Maven repo, where Tracy handlers and tests live.
-2. In `tracy/`, check out a new branch off `main`. **All work goes on this single branch.** Split into commits as you like. Do NOT push — pushing is done out-of-band after you finish.
-3. Install any extra deps you need. Python 3.12 and JDK 21 are already present.
-4. Maintain `/home/coder/control/CLAUDE_CHANGELOG.md` — one terse bullet per iteration with **score before / score after** + what you changed. This is a meta-log of the run, separate from Tracy's own `CHANGELOG.md`.
+2. **Read `tracy/CHANGELOG.md`** before doing anything else — earlier sessions document their session id, branch, eval artifacts location, and what they changed. Use this to plan incremental progress, not duplicate work.
+3. The entrypoint already checked out your session branch. Stay on it. Split your work into commits as you like. Do NOT push.
+4. Install any extra deps you need. Python 3.12 and JDK 21 are already present.
+5. Maintain `tracy/CHANGELOG.md` — at the **end** of your session, append a new section for your `<session_idx>` containing:
+   - session id (`<session_idx>`)
+   - branch (the working branch from your prompt — this is what gets pushed)
+   - base branch (also from your prompt)
+   - number of evaluator attempts you ran
+   - the artifacts folder `artifacts/<session_idx>/` and the `evaluation_<i>.json` files you produced
+   - a brief, user-readable summary of changes you made (e.g. "Fixed Anthropic batches.results op-name collision; added Gemini files.upload coverage")
+
+   Within each session you may also add per-change bullets in the format used by Tracy's existing changelog under `## Unreleased`. **Commit `tracy/CHANGELOG.md`** so it ends up in the branch's git history (so the next session can read it).
 
 ## Two kinds of changes
 
@@ -116,24 +156,30 @@ Spot-checks before committing:
 
 ## Before finishing
 
-The container will try to publish your branch to GitHub when you exit. For
-that to work, leave `tracy/` in this state:
+The entrypoint pushes your session's branch to GitHub when you exit. For
+that to work cleanly, leave `tracy/` in this state:
 
-1. **All your work is on a single branch you created off `main`.** No
-   splitting across branches. (Restating the rule from "Setup steps" because
-   the post-finish step depends on it.) Your branch name is embedded in the
-   published branch `local-claude-control/<your-branch-name>/<random-uuid>`
-   on the GitHub remote. The UUID is generated per run so reruns / parallel
-   containers never collide.
-2. **All changes are committed** — no uncommitted edits, no untracked files
-   you wanted to keep. The entrypoint will safety-net-commit anything you
-   leave behind, but a clean exit is preferred.
-3. **`HEAD` is on your working branch** when you finish — not on `main`, not
-   detached. Run `git status` as your last step in `tracy/` to confirm.
+1. **`HEAD` is on the session branch the entrypoint set up for you** (not on
+   `main`, not detached, not on a different branch you created). Run
+   `git status` as your last step in `tracy/` to confirm.
+2. **`tracy/CHANGELOG.md` is updated and committed** with a fresh section
+   for your session (see "Setup steps" #5).
+3. **All other changes are committed** — no uncommitted edits, no untracked
+   files you wanted to keep. The entrypoint will safety-net-commit anything
+   you leave behind under "auto-save: post-claude session <N>", but a clean
+   exit is preferred.
+
+The published branch on GitHub will be:
+
+```
+local-claude-control/<RUN_ID>/session_<session_idx>/<your-branch>/<random-uuid>
+```
+
+`<RUN_ID>` and `<session_idx>` come from the entrypoint; the UUID is
+generated per session so reruns / parallel containers never collide.
 
 ## Constraints
 
-- Use `git` to branch, commit, and view history. Do **not** push yourself —
-  the container handles publishing after you exit.
-- One working branch off `main`; commit granularity is your call.
-- Quality bar: every change builds green (`assemble`), tests green (the ones you wrote), and ships with KDoc + a `CHANGELOG.md` bullet.
+- Use `git` to commit and view history. Do **not** push, and do **not** create
+  or switch branches — the entrypoint owns branch lifecycle.
+- Quality bar: every change builds green (`assemble`), tests green (the ones you wrote), and ships with KDoc + a `tracy/CHANGELOG.md` bullet.

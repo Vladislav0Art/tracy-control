@@ -36,9 +36,9 @@ WORKDIR /home/coder/control
 COPY --chown=coder:coder artifacts/tracy/ /home/coder/control/tracy/
 COPY --chown=coder:coder artifacts/evaluator/ /home/coder/control/evaluator/
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY entrypoint.py /usr/local/bin/entrypoint.py
+RUN chmod +x /usr/local/bin/entrypoint.py
 
 USER coder
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.py"]

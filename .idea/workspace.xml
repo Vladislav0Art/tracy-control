@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="3c28be6f-be7f-4fc2-bdaf-9ff4e0dddf47" name="Changes" comment="feat: add auto-push toggle in entrypoint based on REPO_PAT presence" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3DRo3gosYD5ACGbXwUxUQKs2OUs" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/vartiukhov/dev/test/codespheres/control-1",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "settings.space",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "TEXT"
+    ]
+  }
+}]]></component>
+  <component name="RecapSpentCounter">
+    <option name="endsOfQuotaMs" value="1780390800028" />
+    <option name="spentUsd" value="0.1282106" />
+  </component>
+  <component name="RecapUselessUpdatesCounter">
+    <option name="suspendCountdown" value="2" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="control-1" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="control-1" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.32098.37" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.32098.37" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3c28be6f-be7f-4fc2-bdaf-9ff4e0dddf47" name="Changes" comment="" />
+      <created>1741464002202</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1741464002202</updated>
+      <workItem from="1741464010866" duration="650000" />
+      <workItem from="1778254047064" duration="14092000" />
+      <workItem from="1778424117779" duration="4256000" />
+    </task>
+    <task id="LOCAL-00001" summary="feat: create a control project (docker image with running claude)">
+      <option name="closed" value="true" />
+      <created>1778256697027</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1778256697027</updated>
+    </task>
+    <task id="LOCAL-00002" summary="chore: simplify TASK, update bootstrap script to use SSH for cloning">
+      <option name="closed" value="true" />
+      <created>1778257089463</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1778257089463</updated>
+    </task>
+    <task id="LOCAL-00003" summary="chore: add log location info to entrypoint script">
+      <option name="closed" value="true" />
+      <created>1778257297003</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1778257297003</updated>
+    </task>
+    <task id="LOCAL-00004" summary="chore: add log location info to entrypoint script">
+      <option name="closed" value="true" />
+      <created>1778257300602</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1778257300602</updated>
+    </task>
+    <task id="LOCAL-00005" summary="chore: add env variable validation and logging to entrypoint script">
+      <option name="closed" value="true" />
+      <created>1778257561373</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1778257561373</updated>
+    </task>
+    <task id="LOCAL-00006" summary="chore: update entrypoint script to stream logs instead of sleeping">
+      <option name="closed" value="true" />
+      <created>1778257752353</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1778257752353</updated>
+    </task>
+    <task id="LOCAL-00007" summary="chore: add `make watch` command to follow container logs">
+      <option name="closed" value="true" />
+      <created>1778257859392</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1778257859392</updated>
+    </task>
+    <task id="LOCAL-00008" summary="chore: add `make stop` command to stop and remove containers">
+      <option name="closed" value="true" />
+      <created>1778258018918</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1778258018918</updated>
+    </task>
+    <task id="LOCAL-00009" summary="chore: rewrite TASK.md with detailed instructions and evaluation flow">
+      <option name="closed" value="true" />
+      <created>1778261934963</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1778261934963</updated>
+    </task>
+    <task id="LOCAL-00010" summary="chore: add info in TASK.md">
+      <option name="closed" value="true" />
+      <created>1778262868500</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1778262868500</updated>
+    </task>
+    <task id="LOCAL-00011" summary="feat: print token label in entrypoint">
+      <option name="closed" value="true" />
+      <created>1778263032239</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1778263032239</updated>
+    </task>
+    <task id="LOCAL-00012" summary="chore: migrate container to non-root user, drop `claude_settings.json` mount, and update CLI with env-driven overrides">
+      <option name="closed" value="true" />
+      <created>1778264163992</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1778264163992</updated>
+    </task>
+    <task id="LOCAL-00013" summary="chore: update README and Makefile for support of multiple container instances">
+      <option name="closed" value="true" />
+      <created>1778264716702</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1778264716702</updated>
+    </task>
+    <task id="LOCAL-00014" summary="chore: rewrite TASK.md to clarify repository structure, workflow, and evaluation criteria">
+      <option name="closed" value="true" />
+      <created>1778264723838</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1778264723838</updated>
+    </task>
+    <task id="LOCAL-00015" summary="chore: update entrypoint, README, and Makefile to support re-entry mode with `.claude_done` marker and `make exec` command">
+      <option name="closed" value="true" />
+      <created>1778265313995</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1778265313995</updated>
+    </task>
+    <task id="LOCAL-00016" summary="feat: add auto-push functionality to GitHub on container exit and update related documentation">
+      <option name="closed" value="true" />
+      <created>1778267005841</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1778267005841</updated>
+    </task>
+    <task id="LOCAL-00017" summary="ашч: add UUID to publish branch naming to avoid clashes on remote">
+      <option name="closed" value="true" />
+      <created>1778267168445</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1778267168445</updated>
+    </task>
+    <task id="LOCAL-00018" summary="feat: add auto-push toggle in entrypoint based on REPO_PAT presence">
+      <option name="closed" value="true" />
+      <created>1778267482659</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1778267482659</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: create a control project (docker image with running claude)" />
+    <MESSAGE value="chore: simplify TASK, update bootstrap script to use SSH for cloning" />
+    <MESSAGE value="chore: add log location info to entrypoint script" />
+    <MESSAGE value="chore: add env variable validation and logging to entrypoint script" />
+    <MESSAGE value="chore: update entrypoint script to stream logs instead of sleeping" />
+    <MESSAGE value="chore: add `make watch` command to follow container logs" />
+    <MESSAGE value="chore: add `make stop` command to stop and remove containers" />
+    <MESSAGE value="chore: rewrite TASK.md with detailed instructions and evaluation flow" />
+    <MESSAGE value="chore: add info in TASK.md" />
+    <MESSAGE value="feat: print token label in entrypoint" />
+    <MESSAGE value="chore: migrate container to non-root user, drop `claude_settings.json` mount, and update CLI with env-driven overrides" />
+    <MESSAGE value="chore: update README.md with revised container naming and parallel run instructions" />
+    <MESSAGE value="chore: update README and Makefile for support of multiple container instances" />
+    <MESSAGE value="chore: rewrite TASK.md to clarify repository structure, workflow, and evaluation criteria" />
+    <MESSAGE value="temp: testing container stopping" />
+    <MESSAGE value="chore: update entrypoint, README, and Makefile to support re-entry mode with `.claude_done` marker and `make exec` command" />
+    <MESSAGE value="feat: add auto-push functionality to GitHub on container exit and update related documentation" />
+    <MESSAGE value="ашч: add UUID to publish branch naming to avoid clashes on remote" />
+    <MESSAGE value="feat: add auto-push toggle in entrypoint based on REPO_PAT presence" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: add auto-push toggle in entrypoint based on REPO_PAT presence" />
+  </component>
+</project>
